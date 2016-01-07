@@ -59,7 +59,7 @@ namespace Mono.Nat.Test
             }
 		}
 		
-		private void DeviceFound (object sender, DeviceEventArgs args)
+		private async void DeviceFound (object sender, DeviceEventArgs args)
         {
             try
             {
@@ -70,32 +70,32 @@ namespace Mono.Nat.Test
 			    Console.ResetColor();
 			    Console.WriteLine ("Type: {0}", device.GetType().Name);
     			
-			    Console.WriteLine ("IP: {0}", device.GetExternalIP ());
-                device.CreatePortMap(new Mapping(Protocol.Tcp, 1500, 1500));
+			    Console.WriteLine ("IP: {0}", await device.GetExternalIPAsync ());
+				await device.CreatePortMapAsync(new Mapping(Protocol.Tcp, 1500, 1500));
 			    Console.WriteLine ("---");
 			
 				return;
 			
                 Mapping mapping = new Mapping(Protocol.Tcp, 6001, 6001);
-                device.CreatePortMap(mapping);
+                await device.CreatePortMapAsync(mapping);
 				Console.WriteLine("Create Mapping: protocol={0}, public={1}, private={2}", mapping.Protocol, mapping.PublicPort, mapping.PrivatePort);
 
                 try
                 {
-                    Mapping m = device.GetSpecificMapping(Protocol.Tcp, 6001);
+                    Mapping m = await device.GetSpecificMappingAsync(Protocol.Tcp, 6001);
                     Console.WriteLine("Specific Mapping: protocol={0}, public={1}, private={2}", m.Protocol, m.PublicPort, m.PrivatePort);
                 }
                 catch
                 {
                     Console.WriteLine("Couldnt get specific mapping");
                 }
-                foreach (Mapping mp in device.GetAllMappings())
+                foreach (Mapping mp in await device.GetAllMappingsAsync())
                 {
                     Console.WriteLine("Existing Mapping: protocol={0}, public={1}, private={2}", mp.Protocol, mp.PublicPort, mp.PrivatePort);
-                    device.DeletePortMap(mp);
+                    await device.DeletePortMapAsync(mp);
                 }
 
-                Console.WriteLine("External IP: {0}", device.GetExternalIP());
+				Console.WriteLine("External IP: {0}", await device.GetExternalIPAsync ());
                 Console.WriteLine("Done...");
 
 			} catch (Exception ex) {

@@ -32,6 +32,7 @@ using System.Net;
 using System.Xml;
 using System.Text;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Mono.Nat.Upnp
 {
@@ -128,43 +129,67 @@ namespace Mono.Nat.Upnp
 			get { return this.serviceType; }
 		}
 
+		public override Task<IPAddress> GetExternalIPAsync ()
+		{
+			return Task.Factory.FromAsync (BeginGetExternalIP (null, null), EndGetExternalIP);
+		}
+
 		/// <summary>
 		/// Begins an async call to get the external ip address of the router
 		/// </summary>
-		public override IAsyncResult BeginGetExternalIP(AsyncCallback callback, object asyncState)
+		IAsyncResult BeginGetExternalIP(AsyncCallback callback, object asyncState)
 		{
 			// Create the port map message
 			GetExternalIPAddressMessage message = new GetExternalIPAddressMessage(this);
 			return BeginMessageInternal(message, callback, asyncState, EndGetExternalIPInternal);
 		}
 
+		public override Task CreatePortMapAsync (Mapping mapping)
+		{
+			return Task.Factory.FromAsync (BeginCreatePortMap (mapping, null, null), EndCreatePortMap);
+		}
+
 		/// <summary>
 		///  Maps the specified port to this computer
 		/// </summary>
-        public override IAsyncResult BeginCreatePortMap(Mapping mapping, AsyncCallback callback, object asyncState)
+        IAsyncResult BeginCreatePortMap(Mapping mapping, AsyncCallback callback, object asyncState)
 		{
             CreatePortMappingMessage message = new CreatePortMappingMessage(mapping, localAddress, this);
             return BeginMessageInternal(message, callback, mapping, EndCreatePortMapInternal);
 		}
 
+		public override Task DeletePortMapAsync (Mapping mapping)
+		{
+			return Task.Factory.FromAsync (BeginDeletePortMap (mapping, null, null), EndDeletePortMap);
+		}
+
 		/// <summary>
 		/// Removes a port mapping from this computer  
 		/// </summary>
-		public override IAsyncResult BeginDeletePortMap(Mapping mapping, AsyncCallback callback, object asyncState)
+		IAsyncResult BeginDeletePortMap(Mapping mapping, AsyncCallback callback, object asyncState)
 		{
 			DeletePortMappingMessage message = new DeletePortMappingMessage(mapping, this);
 			return BeginMessageInternal(message, callback, asyncState, EndDeletePortMapInternal);
 		}
 
 
-		public override IAsyncResult BeginGetAllMappings(AsyncCallback callback, object asyncState)
+		public override Task<Mapping[]> GetAllMappingsAsync()
+		{
+			return Task.Factory.FromAsync (BeginGetAllMappings (null, null), EndGetAllMappings);
+		}
+
+		IAsyncResult BeginGetAllMappings(AsyncCallback callback, object asyncState)
 		{
 			GetGenericPortMappingEntry message = new GetGenericPortMappingEntry(0, this);
 			return BeginMessageInternal(message, callback, asyncState, EndGetAllMappingsInternal);
 		}
 
+		public override Task<Mapping> GetSpecificMappingAsync(Protocol protocol, int externalPort)
+		{
+			return Task.Factory.FromAsync (BeginGetSpecificMapping (protocol, externalPort, null, null), EndGetSpecificMapping);
+		}
 
-		public override IAsyncResult BeginGetSpecificMapping (Protocol protocol, int port, AsyncCallback callback, object asyncState)
+		IAsyncResult BeginGetSpecificMapping (Protocol protocol, int port, AsyncCallback callback, object asyncState)
 		{
 			GetSpecificPortMappingEntryMessage message = new GetSpecificPortMappingEntryMessage(protocol, port, this);
 			return this.BeginMessageInternal(message, callback, asyncState, new AsyncCallback(this.EndGetSpecificMappingInternal));
@@ -174,7 +199,7 @@ namespace Mono.Nat.Upnp
 		/// 
 		/// </summary>
 		/// <param name="result"></param>
-		public override void EndCreatePortMap(IAsyncResult result)
+		void EndCreatePortMap(IAsyncResult result)
 		{
 			if (result == null) throw new ArgumentNullException("result");
 
@@ -202,7 +227,7 @@ namespace Mono.Nat.Upnp
 		/// 
 		/// </summary>
 		/// <param name="result"></param>
-		public override void EndDeletePortMap(IAsyncResult result)
+		void EndDeletePortMap(IAsyncResult result)
 		{
 			if (result == null)
 				throw new ArgumentNullException("result");
@@ -228,7 +253,7 @@ namespace Mono.Nat.Upnp
 		}
 
 
-		public override Mapping[] EndGetAllMappings(IAsyncResult result)
+		Mapping[] EndGetAllMappings(IAsyncResult result)
 		{
 			if (result == null)
 				throw new ArgumentNullException("result");
@@ -254,7 +279,7 @@ namespace Mono.Nat.Upnp
 		/// <summary>
 		/// Ends an async request to get the external ip address of the router
 		/// </summary>
-		public override IPAddress EndGetExternalIP(IAsyncResult result)
+		IPAddress EndGetExternalIP(IAsyncResult result)
 		{
 			if (result == null) throw new ArgumentNullException("result");
 
@@ -275,7 +300,7 @@ namespace Mono.Nat.Upnp
 		}
 
 
-		public override Mapping EndGetSpecificMapping(IAsyncResult result)
+		Mapping EndGetSpecificMapping(IAsyncResult result)
 		{
 			if (result == null)
 				throw new ArgumentNullException("result");
